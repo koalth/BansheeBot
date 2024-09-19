@@ -10,6 +10,8 @@ from aiolimiter import AsyncLimiter
 import aiohttp
 import urllib.parse
 
+from loguru import logger
+
 
 class MyBaseModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -127,7 +129,10 @@ class RaiderIOClient:
             async with self.limiter:
                 endpoint = self._create_url(endpoint, params)
                 return await self._fetch_response(endpoint, model_cls)
-        except:
+        except Exception as err:
+            logger.error(
+                f"There was an error requesting endpoint {endpoint} with params: {params}. Error: {err}"
+            )
             return None
 
     async def getCharacterProfile(
@@ -138,6 +143,7 @@ class RaiderIOClient:
         response = await self._get("character/profile", CharacterResponse, params)
 
         if response is None:
+            logger.error("Response was none")
             raise Exception("Response was none")
 
         return response

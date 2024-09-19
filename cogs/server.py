@@ -9,11 +9,19 @@ class Server(Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        pass
+        """Creates the Server model when bot joins the server"""
+        exists = await ServerModel.exists(discord_guild_id=guild.id)
+        if exists:
+            return
+
+        db_guild = await ServerModel.create(discord_guild_id=guild.id)
+        await db_guild.save()
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
-        pass
+        """Deletes the associated server model for this server"""
+        db_guild = await ServerModel.get(discord_guild_id=guild.id)
+        await ServerModel.delete(db_guild)
 
 
 def setup(bot):

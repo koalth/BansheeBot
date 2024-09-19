@@ -10,6 +10,7 @@ from discord.utils import utcnow
 from .dto import Character
 from .api import RaiderIOClient
 
+from loguru import logger
 
 class Context(ApplicationContext):
 
@@ -31,7 +32,17 @@ class Context(ApplicationContext):
                 spec_name=character_response.active_spec_name,
             )
         except:
+            logger.error("Error getting character")
             return None
+
+    def _get_guild(self) -> discord.Guild:
+        guild = self.guild
+        assert type(guild) is discord.Guild
+        return guild
+
+    def _get_guild_id(self) -> int:
+        guild = self._get_guild()
+        return guild.id
 
     async def success(self, title: str, description: str | None = None, **kwargs):
         embed = Embed(
