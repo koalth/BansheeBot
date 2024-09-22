@@ -20,6 +20,10 @@ class Server(Cog):
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
         """Deletes the associated server model for this server"""
+        exists = await ServerModel.exists(discord_guild_id=guild.id)
+        if not exists:
+            return
+
         db_guild = await ServerModel.get(discord_guild_id=guild.id)
         await ServerModel.delete(db_guild)
 

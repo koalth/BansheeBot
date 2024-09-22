@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from aiolimiter import AsyncLimiter
 import aiohttp
 import urllib.parse
+import json
 
 from loguru import logger
 
@@ -90,7 +91,6 @@ ModelType = TypeVar("ModelType", bound=BaseModel)
 
 class RaiderIOClient:
 
-    client: aiohttp.ClientSession
     limiter: AsyncLimiter
 
     api_url: str = "https://raider.io/api/v1"
@@ -100,24 +100,24 @@ class RaiderIOClient:
     backoff_factor: int
 
     def __init__(self) -> None:
-        self.client = aiohttp.ClientSession(base_url=self.api_url)
         self.limiter = AsyncLimiter(self.rate_limit)
 
     def _create_url(
         self, endpoint: str, params: Optional[Dict[str, str]] = None
     ) -> str:
         if params is not None:
-            endpoint = f"{endpoint}?{urllib.parse.urlencode(params)}"
+            endpoint = f"{self.api_url}/{endpoint}?{urllib.parse.urlencode(params)}"
 
         return endpoint
 
     async def _fetch_response(
         self, endpoint: str, model_cls: type[ModelType]
     ) -> ModelType:
-        async with self.client.get(endpoint) as response:
-            assert response.status == 200
-            data = await response.json()
-            return model_cls(**data)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(endpoint) as response:
+                assert response.status == 200
+                data = await response.json()
+                return model_cls(**data)
 
     async def _get(
         self,
@@ -128,6 +128,7 @@ class RaiderIOClient:
         try:
             async with self.limiter:
                 endpoint = self._create_url(endpoint, params)
+                logger.debug(endpoint)
                 return await self._fetch_response(endpoint, model_cls)
         except Exception as err:
             logger.error(
@@ -140,7 +141,7 @@ class RaiderIOClient:
     ) -> CharacterResponse:
         params = {"region": region, "realm": realm, "name": name, "fields": "gear"}
 
-        response = await self._get("character/profile", CharacterResponse, params)
+        response = await self._get("characters/profile", CharacterResponse, params)
 
         if response is None:
             logger.error("Response was none")

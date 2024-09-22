@@ -2,6 +2,8 @@ import discord
 
 from core import Cog, Context, ServerModel, CharacterModel
 
+from py_markdown_table.markdown_table import markdown_table
+
 
 class Raid(Cog):
     """Commands related to the raid roster"""
@@ -15,17 +17,23 @@ class Raid(Cog):
             "raiders"
         )
 
-        raider_names = "\n".join([raider.name for raider in server.raiders])
-        class_specs = "\n".join(
-            [f"{raider.class_name}/{raider.spec_name}" for raider in server.raiders]
-        )
-        item_levels = "\n".join([str(raider.item_level) for raider in server.raiders])
+        raider_data = []
+        for raider in server.raiders:
+            raider_data.append(
+                {
+                    "Name": raider.name,
+                    "Class": raider.class_name,
+                    "Spec": raider.spec_name,
+                    "Item Level": raider.item_level,
+                }
+            )
 
+    
+        table = markdown_table(raider_data).set_params(row_sep='always', padding_width=5, padding_weight='centerright').get_markdown()
         embed = discord.Embed(title="Raid Roster", color=discord.Color.dark_gold())
+        embed.add_field(name="Raiders", value=table)
 
-        embed.add_field(name="Raiders", value=raider_names, inline=True)
-        embed.add_field(name="Class/Spec", value=class_specs, inline=True)
-        embed.add_field(name="Item Level", value=item_levels, inline=True)
+        embed.set_footer(text="Data from Raider.io")
 
         return await ctx.respond(embed=embed)
 

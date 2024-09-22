@@ -24,6 +24,11 @@ class BansheeBot(commands.Bot):
             )
         )
 
+    async def get_application_context(
+        self, interaction: discord.Interaction
+    ) -> Context:
+        return Context(self, interaction)
+
     async def setup_tortoise(self) -> None:
         await Tortoise.init(
             db_url="sqlite://data/database.db", modules={"models": ["core.models"]}
@@ -39,7 +44,7 @@ class BansheeBot(commands.Bot):
         return await super().close()
 
     def run(self, debug: bool = False) -> None:
-        default_cog_list = ["cogs.raid", "cogs.server"]
+        default_cog_list = ["cogs.raid", "cogs.server", "cogs.developer"]
         for cog in default_cog_list:
             self.load_extension(cog)
 

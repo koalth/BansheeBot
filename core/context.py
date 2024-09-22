@@ -12,6 +12,7 @@ from .api import RaiderIOClient
 
 from loguru import logger
 
+
 class Context(ApplicationContext):
 
     async def getCharacter(
@@ -26,13 +27,13 @@ class Context(ApplicationContext):
                 realm=character_response.realm,
                 region=character_response.region,
                 char_class=character_response.character_class,
-                item_level=character_response.gear.item_level_total,
+                item_level=character_response.gear.item_level_equipped,
                 profile_url=character_response.profile_url,
                 thumbnail_url=character_response.thumbnail_url,
                 spec_name=character_response.active_spec_name,
             )
-        except:
-            logger.error("Error getting character")
+        except Exception as err:
+            logger.error(f"Error getting character: {err}")
             return None
 
     def _get_guild(self) -> discord.Guild:
