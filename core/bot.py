@@ -62,5 +62,5 @@ class BansheeBot(commands.Bot):
                 title=error.__class__.__name__,
                 description=str(error),
                 color=discord.Color.red(),
-            )
+            ), ephemeral=True
         )

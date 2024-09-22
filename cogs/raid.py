@@ -1,4 +1,5 @@
 import discord
+from discord.ext import commands
 
 from core import Cog, Context, ServerModel, CharacterModel
 
@@ -11,6 +12,8 @@ class Raid(Cog):
     @discord.command(
         name="roster", description="Displays the roster of all registered characters"
     )
+    @commands.is_owner()
+    @commands.guild_only()
     async def roster(self, ctx: Context):
         guild_id = ctx._get_guild_id()
         server = await ServerModel.get(discord_guild_id=guild_id).prefetch_related(
@@ -50,6 +53,7 @@ class Raid(Cog):
         description="Region of the World of Warcraft character",
         choices=["us"],
     )
+    @commands.guild_only()
     async def register(self, ctx: Context, name: str, realm: str, region: str):
 
         # check if character already exists
@@ -82,7 +86,7 @@ class Raid(Cog):
         await character.save()
 
         return await ctx.respond(
-            f"`{character.name}`-`{character.realm}` has been registered!"
+            f"`{character.name}`-`{character.realm}` has been registered!", ephemeral=True
         )
 
 
