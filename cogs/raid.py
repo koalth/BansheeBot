@@ -31,7 +31,8 @@ class Raid(Cog):
                 }
             )
 
-    
+
+        
         table = markdown_table(raider_data).set_params(row_sep='always', padding_width=5, padding_weight='centerright').get_markdown()
         embed = discord.Embed(title="Raid Roster", color=discord.Color.dark_gold())
         embed.add_field(name="Raiders", value=table)
@@ -81,6 +82,7 @@ class Raid(Cog):
             profile_url=profile.profile_url,
             thumbnail_url=profile.thumbnail_url,
             raid_roster_id=server.id,
+            last_crawled_at=profile.last_crawled_at
         )
 
         await character.save()
@@ -88,7 +90,6 @@ class Raid(Cog):
         return await ctx.respond(
             f"`{character.name}`-`{character.realm}` has been registered!", ephemeral=True
         )
-
 
 def setup(bot):
     bot.add_cog(Raid(bot))

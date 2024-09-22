@@ -6,6 +6,11 @@ class ServerModel(Model):
     id = fields.IntField(primary_key=True)
     discord_guild_id = fields.IntField(unique=True)
 
+    raider_role_id = fields.IntField(null=True)
+    raider_item_level_requirement = fields.IntField(null=True)
+
+    # fields to track roster updates
+
     raiders: fields.ReverseRelation["CharacterModel"]
 
     class Meta:
@@ -26,9 +31,12 @@ class CharacterModel(Model):
     profile_url = fields.TextField()
     thumbnail_url = fields.TextField()
 
+    last_crawled_at = fields.DatetimeField(null=True)
+
     raid_roster: fields.ForeignKeyRelation[ServerModel] = fields.ForeignKeyField(
         "models.ServerModel", related_name="raiders"
     )
 
     class Meta:
         table = "characters"
+

@@ -10,6 +10,9 @@ from .models import ServerModel, CharacterModel
 
 load_dotenv()
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 class BansheeBot(commands.Bot):
 

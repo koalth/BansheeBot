@@ -1,6 +1,6 @@
 from typing import List, Optional
 from dataclasses import dataclass
-
+from datetime import datetime
 
 @dataclass
 class Character:
@@ -12,3 +12,4 @@ class Character:
     item_level: int
     profile_url: str
     thumbnail_url: str
+    last_crawled_at: datetime

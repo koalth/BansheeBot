@@ -31,6 +31,7 @@ class Context(ApplicationContext):
                 profile_url=character_response.profile_url,
                 thumbnail_url=character_response.thumbnail_url,
                 spec_name=character_response.active_spec_name,
+                last_crawled_at=character_response.last_crawled_at
             )
         except Exception as err:
             logger.error(f"Error getting character: {err}")
