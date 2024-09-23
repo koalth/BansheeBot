@@ -37,8 +37,12 @@ class BansheeBot(commands.Bot):
         )
         await Tortoise.generate_schemas()
 
+    async def setup_logger(self) -> None:
+        logger.add("discord_{time}.log", rotation="1 day", enqueue=True)
+
     async def start(self, token: str, *, reconnect: bool = True) -> None:
         await self.setup_tortoise()
+        await self.setup_logger()
         return await super().start(token, reconnect=reconnect)
 
     async def close(self) -> None:
@@ -46,7 +50,6 @@ class BansheeBot(commands.Bot):
         return await super().close()
 
     def run(self, debug: bool = False) -> None:
-
         default_cog_list = [
             "cogs.raid",
             "cogs.server",
@@ -55,6 +58,7 @@ class BansheeBot(commands.Bot):
         ]
         for cog in default_cog_list:
             self.load_extension(cog)
+            logger.info(f"{cog} loaded")
 
         token = getenv("DISCORD_TOKEN")
         if token is None:

@@ -5,7 +5,7 @@ from core import Cog, Context, ServerModel, CharacterModel
 
 from py_markdown_table.markdown_table import markdown_table
 
-from core.bot import BansheeBot
+from loguru import logger
 
 
 class Raid(Cog):
@@ -86,12 +86,14 @@ class Raid(Cog):
         exists = await CharacterModel.exists(name=name, realm=realm)
 
         if exists:
+            logger.debug(f"Character already exists")
             return await ctx.respond(f"`{name}` has already been registered")
 
         guild_id = ctx._get_guild_id()
         profile = await ctx.getCharacter(name, realm, region)
 
         if profile is None:
+            logger.debug(f"Character profile was none")
             return await ctx.respond(f"Character was not found")
 
         server = await ServerModel.get(discord_guild_id=guild_id)
@@ -111,7 +113,7 @@ class Raid(Cog):
         )
 
         await character.save()
-
+        logger.info(f"Character {character.name} saved")
         return await ctx.respond(
             f"`{character.name}`-`{character.realm}` has been registered!",
             ephemeral=True,

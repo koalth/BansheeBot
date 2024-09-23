@@ -47,7 +47,7 @@ class Refresh(Cog):
                 if server.roster_updating and (
                     not self.refresh_task or self.refresh_task.done()
                 ):
-                    logger.debug("Creating task to refresh roster")
+                    logger.info("Creating task to refresh roster")
                     self.refresh_task = self.bot.loop.create_task(
                         self.refresh_roster(guild.id)
                     )
@@ -56,7 +56,7 @@ class Refresh(Cog):
 
     @check_refresh_status.before_loop
     async def before_check_refresh_status(self):
-        logger.debug("Waiting for bot to check refresh status...")
+        logger.info("Waiting for bot to check refresh status...")
         await self.bot.wait_until_ready()
 
     async def refresh_roster(self, guild_id: int):
@@ -69,7 +69,7 @@ class Refresh(Cog):
                 await asyncio.sleep(1)
 
         except Exception as err:
-            print(f"An error has occurred during the refresh {err}")
+            logger.error(f"An error has occurred during refresh: {err}")
         finally:
             await ServerModel.filter(discord_guild_id=guild_id).update(
                 roster_updating=False
@@ -102,7 +102,7 @@ class Refresh(Cog):
                 raiderio_last_crawled_at=profile.last_crawled_at,
             )
 
-            logger.debug(f"Character {char.name} refreshed")
+            logger.info(f"Character {char.name} refreshed")
 
             await char.save()
         except Exception as err:

@@ -3,6 +3,7 @@ from discord.ext import commands
 
 from core import Cog, Context, ServerModel
 
+from loguru import logger
 
 class Developer(Cog):
     """Commands related to developer commands"""
@@ -16,6 +17,7 @@ class Developer(Cog):
         guild_id = ctx.guild_id
         exists = await ServerModel.exists(discord_guild_id=guild_id)
         if exists:
+            logger.debug(f"Server model already exists.")
             return
 
         db_guild = await ServerModel.create(discord_guild_id=guild_id)
