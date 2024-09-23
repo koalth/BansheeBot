@@ -6,6 +6,7 @@ from core import Cog, Context, ServerModel
 
 class Server(Cog):
     """Commands related to server settings"""
+
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         """Creates the Server model when bot joins the server"""

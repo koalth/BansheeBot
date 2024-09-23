@@ -10,6 +10,7 @@ class ServerModel(Model):
     raider_item_level_requirement = fields.IntField(null=True)
 
     # fields to track roster updates
+    roster_updating = fields.BooleanField()
 
     raiders: fields.ReverseRelation["CharacterModel"]
 
@@ -39,4 +40,3 @@ class CharacterModel(Model):
 
     class Meta:
         table = "characters"
-
