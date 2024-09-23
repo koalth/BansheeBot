@@ -47,7 +47,12 @@ class BansheeBot(commands.Bot):
         return await super().close()
 
     def run(self, debug: bool = False) -> None:
-        default_cog_list = ["cogs.raid", "cogs.server", "cogs.developer"]
+        default_cog_list = [
+            "cogs.raid",
+            "cogs.server",
+            "cogs.developer",
+            "cogs.refresh",
+        ]
         for cog in default_cog_list:
             self.load_extension(cog)
 
