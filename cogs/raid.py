@@ -51,7 +51,7 @@ class Raid(Cog):
 
             raider_data.append(data)
 
-        if len(raider_data) is 0:
+        if len(raider_data) == 0:
             return await ctx.respond("There are no raiders to display.")
 
         table = (
@@ -121,8 +121,21 @@ class Raid(Cog):
         name="itemlevel",
         description="Set the item level requirement for raid roster. Enter 0 to have no requirement",
     )
-    async def set_item_level_requirement(self, item_level: int):
-        pass
+    async def set_item_level_requirement(self, ctx: Context, item_level: int):
+        guild_id = ctx._get_guild_id()
+
+        if item_level == 0:
+            await ServerModel.filter(discord_guild_id=guild_id).update(
+                raider_item_level_requirement=None
+            )
+        else:
+            await ServerModel.filter(discord_guild_id=guild_id).update(
+                raider_item_level_requirement=item_level
+            )
+
+        return await ctx.respond(
+            f"Item level requirement has been set to `{item_level}`!"
+        )
 
 
 def setup(bot):
