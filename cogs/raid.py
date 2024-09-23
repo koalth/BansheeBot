@@ -11,14 +11,10 @@ from core.bot import BansheeBot
 class Raid(Cog):
     """Commands related to the raid roster"""
 
-    def __init__(self, bot: BansheeBot) -> None:
-        self.is_roster_updating = False
-        self.update_task = None
-        self.check_refresh_status.start()
-        super().__init__(bot)
-
-    def cog_unload(self) -> None:
-        self.check_refresh_status.cancel()
+    def get_requirement_emoji(
+        self, item_level: int, item_level_requirement: int
+    ) -> str:
+        return "✅" if item_level >= item_level_requirement else "❌"
 
     @discord.command(
         name="roster", description="Displays the roster of all registered characters"
@@ -33,14 +29,30 @@ class Raid(Cog):
 
         raider_data = []
         for raider in server.raiders:
-            raider_data.append(
-                {
-                    "Name": raider.name,
-                    "Class": raider.class_name,
-                    "Spec": raider.spec_name,
-                    "Item Level": raider.item_level,
-                }
-            )
+
+            data = {
+                "Name": raider.name,
+                "Class": raider.class_name,
+                "Spec": raider.spec_name,
+                "Item Level": raider.item_level,
+            }
+
+            if (
+                server.raider_item_level_requirement is not None
+                and server.raider_item_level_requirement > 0
+            ):
+                data.update(
+                    {
+                        "Meets Requirments?": self.get_requirement_emoji(
+                            raider.item_level, server.raider_item_level_requirement
+                        )
+                    }
+                )
+
+            raider_data.append(data)
+
+        if len(raider_data) is 0:
+            return await ctx.respond("There are no raiders to display.")
 
         table = (
             markdown_table(raider_data)
@@ -95,7 +107,7 @@ class Raid(Cog):
             profile_url=profile.profile_url,
             thumbnail_url=profile.thumbnail_url,
             raid_roster_id=server.id,
-            last_crawled_at=profile.last_crawled_at,
+            raiderio_last_crawled_at=profile.last_crawled_at,
         )
 
         await character.save()
@@ -105,59 +117,12 @@ class Raid(Cog):
             ephemeral=True,
         )
 
-    @discord.command(name="refresh", description="Start refreshing the raider roster")
-    async def start_refresh(self, ctx: Context):
+    @discord.command(
+        name="itemlevel",
+        description="Set the item level requirement for raid roster. Enter 0 to have no requirement",
+    )
+    async def set_item_level_requirement(self, item_level: int):
         pass
-
-    @discord.command(name="status", description="Get the status of the roster refresh")
-    async def get_status(self, ctx: Context):
-        pass
-
-    @tasks.loop(minutes=30)
-    async def check_refresh_status(self):
-        pass
-
-    async def refresh_characters(self):
-        pass
-
-    async def refresh_character(self):
-        pass
-
-    # @tasks.loop(minutes=30)
-    # async def check_refresh_status(self, ctx: Context):
-    #     if not self.update_task or self.update_task.done():
-    #         guild_id = ctx._get_guild_id()
-    #         server = await ServerModel.get(discord_guild_id=guild_id)
-    #         if server.roster_updating:
-    #             self.update_task = self.bot.loop.create_task(self.refresh_roster(ctx))
-
-    # async def refresh_roster(self, ctx: Context):
-    #     guild_id = ctx._get_guild_id()
-    #     server = await ServerModel.get(discord_guild_id=guild_id).prefetch_related(
-    #         "raiders"
-    #     )
-
-    #     for raider in server.raiders:
-    #         char = await CharacterModel.get(id=raider.id)
-    #         profile = await ctx.getCharacter(char.name, char.realm, char.region)
-    #         if profile is None:
-    #             continue
-    #         await CharacterModel.filter(id=raider.id).update(
-    #             item_level=profile.item_level,
-    #             spec_name=profile.spec_name,
-    #             last_crawled_at=profile.last_crawled_at,
-    #         )
-
-    #     await ServerModel.filter(id=server.id).update(roster_updating=False)
-
-    # @discord.command(name="refresh", description="Start the refresh process")
-    # async def refresh(self, ctx: Context):
-    #     guild_id = ctx._get_guild_id()
-    #     server = await ServerModel.get(discord_guild_id=guild_id)
-    #     if server.roster_updating:
-    #         return await ctx.respond("Roster is already refreshing")
-
-    #     await ServerModel.filter(id=server.id).update(roster_updating=True)
 
 
 def setup(bot):

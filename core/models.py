@@ -10,7 +10,7 @@ class ServerModel(Model):
     raider_item_level_requirement = fields.IntField(null=True)
 
     # fields to track roster updates
-    roster_updating = fields.BooleanField()
+    roster_updating = fields.BooleanField(default=False)
 
     raiders: fields.ReverseRelation["CharacterModel"]
 
@@ -32,7 +32,16 @@ class CharacterModel(Model):
     profile_url = fields.TextField()
     thumbnail_url = fields.TextField()
 
-    last_crawled_at = fields.DatetimeField(null=True)
+    raiderio_last_crawled_at = (
+        fields.DatetimeField()
+    )  # This is the last time RaiderIO API crawled for the character data
+
+    added_on = fields.DatetimeField(
+        auto_now_add=True
+    )  # This is when the character was added to the database
+    last_updated = fields.DatetimeField(
+        auto_now=True
+    )  # This is the last time the character was updated
 
     raid_roster: fields.ForeignKeyRelation[ServerModel] = fields.ForeignKeyField(
         "models.ServerModel", related_name="raiders"

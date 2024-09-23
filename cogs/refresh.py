@@ -6,6 +6,8 @@ from core import Cog, Context, ServerModel, CharacterModel, RaiderIOClient, Char
 from core.bot import BansheeBot
 import asyncio
 
+from loguru import logger
+
 
 class Refresh(Cog):
     """Commands and tasks relating to refreshing the raid roster"""
@@ -13,7 +15,6 @@ class Refresh(Cog):
     def __init__(self, bot: BansheeBot):
         self.is_refreshing = False
         self.refresh_task = None
-        self.guild_id = None
         self.check_refresh_status.start()
         super().__init__(bot)
 
@@ -27,8 +28,7 @@ class Refresh(Cog):
 
         guild_id = ctx._get_guild_id()
         await ServerModel.filter(discord_guild_id=guild_id).update(roster_updating=True)
-        self.guild_id = guild_id
-        self.refresh_task = self.bot.loop.create_task(self.refresh_roster())
+        self.refresh_task = self.bot.loop.create_task(self.refresh_roster(guild_id))
         return await ctx.respond("Roster refresh is started in the background")
 
     @discord.command(name="status")
@@ -36,20 +36,34 @@ class Refresh(Cog):
         guild_id = ctx._get_guild_id()
         server = await ServerModel.get(discord_guild_id=guild_id)
         status = "in progress" if server.roster_updating else "not running"
-        return await ctx.send(f"Roster refresh status is currently {status}.")
+        return await ctx.respond(f"Roster refresh status is currently {status}.")
 
     @tasks.loop(minutes=5)
     async def check_refresh_status(self):
-        if not self.refresh_task or self.refresh_task.done():
-            server = await ServerModel.get(discord_guild_id=self.guild_id)
-            if server.roster_updating:
-                self.refresh_task = self.bot.loop.create_task(self.refresh_roster())
-
-    async def refresh_roster(self):
+        logger.debug("Checking refresh status")
         try:
-            server = await ServerModel.get(
-                discord_guild_id=self.guild_id
-            ).prefetch_related("raiders")
+            for guild in self.bot.guilds:
+                server = await ServerModel.get(discord_guild_id=guild.id)
+                if server.roster_updating and (
+                    not self.refresh_task or self.refresh_task.done()
+                ):
+                    logger.debug("Creating task to refresh roster")
+                    self.refresh_task = self.bot.loop.create_task(
+                        self.refresh_roster(guild.id)
+                    )
+        except Exception as err:
+            logger.debug(f"Error during checking refresh status: {err}")
+
+    @check_refresh_status.before_loop
+    async def before_check_refresh_status(self):
+        logger.debug("Waiting for bot to check refresh status...")
+        await self.bot.wait_until_ready()
+
+    async def refresh_roster(self, guild_id: int):
+        try:
+            server = await ServerModel.get(discord_guild_id=guild_id).prefetch_related(
+                "raiders"
+            )
             for raider in server.raiders:
                 await self.refresh_character(raider)
                 await asyncio.sleep(1)
@@ -57,7 +71,7 @@ class Refresh(Cog):
         except Exception as err:
             print(f"An error has occurred during the refresh {err}")
         finally:
-            await ServerModel.filter(discord_guild_id=self.guild_id).update(
+            await ServerModel.filter(discord_guild_id=guild_id).update(
                 roster_updating=False
             )
 
@@ -85,9 +99,15 @@ class Refresh(Cog):
             await CharacterModel.filter(id=character.id).update(
                 item_level=profile.item_level,
                 spec_name=profile.spec_name,
-                last_crawled_at=profile.last_crawled_at,
+                raiderio_last_crawled_at=profile.last_crawled_at,
             )
+
+            logger.debug(f"Character {char.name} refreshed")
 
             await char.save()
         except Exception as err:
             print(f"Error updating character {character.name}: {err}")
+
+
+def setup(bot):
+    bot.add_cog(Refresh(bot))

@@ -10,8 +10,7 @@ from .models import ServerModel, CharacterModel
 
 load_dotenv()
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
+from loguru import logger
 
 
 class BansheeBot(commands.Bot):
@@ -47,6 +46,7 @@ class BansheeBot(commands.Bot):
         return await super().close()
 
     def run(self, debug: bool = False) -> None:
+
         default_cog_list = [
             "cogs.raid",
             "cogs.server",
@@ -70,5 +70,6 @@ class BansheeBot(commands.Bot):
                 title=error.__class__.__name__,
                 description=str(error),
                 color=discord.Color.red(),
-            ), ephemeral=True
+            ),
+            ephemeral=True,
         )
