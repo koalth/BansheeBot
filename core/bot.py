@@ -37,12 +37,8 @@ class BansheeBot(commands.Bot):
         )
         await Tortoise.generate_schemas()
 
-    async def setup_logger(self) -> None:
-        logger.add("discord_{time}.log", rotation="1 day", enqueue=True)
-
     async def start(self, token: str, *, reconnect: bool = True) -> None:
         await self.setup_tortoise()
-        await self.setup_logger()
         return await super().start(token, reconnect=reconnect)
 
     async def close(self) -> None:

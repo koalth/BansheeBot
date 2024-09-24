@@ -21,7 +21,12 @@ class Refresh(Cog):
     def cog_unload(self) -> None:
         self.check_refresh_status.cancel()
 
-    @discord.command(name="refresh")
+    @discord.command(
+        name="refresh",
+        description="Refresh the characters on the roster with the latest data from RaiderIO",
+    )
+    @commands.is_owner()
+    @commands.guild_only()
     async def refresh(self, ctx: Context):
         if self.is_refreshing:
             return await ctx.respond("Roster is already refreshing")
@@ -29,14 +34,22 @@ class Refresh(Cog):
         guild_id = ctx._get_guild_id()
         await ServerModel.filter(discord_guild_id=guild_id).update(roster_updating=True)
         self.refresh_task = self.bot.loop.create_task(self.refresh_roster(guild_id))
-        return await ctx.respond("Roster refresh is started in the background")
+        return await ctx.respond(
+            "Roster refresh is started in the background", ephemeral=True
+        )
 
-    @discord.command(name="status")
+    @discord.command(
+        name="status", description="Get the status of the current roster refresh"
+    )
+    @commands.is_owner()
+    @commands.guild_only()
     async def status(self, ctx: Context):
         guild_id = ctx._get_guild_id()
         server = await ServerModel.get(discord_guild_id=guild_id)
         status = "in progress" if server.roster_updating else "not running"
-        return await ctx.respond(f"Roster refresh status is currently {status}.")
+        return await ctx.respond(
+            f"Roster refresh status is currently {status}.", ephemeral=True
+        )
 
     @tasks.loop(minutes=5)
     async def check_refresh_status(self):

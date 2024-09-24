@@ -14,7 +14,7 @@ class Raid(Cog):
     def get_requirement_emoji(
         self, item_level: int, item_level_requirement: int
     ) -> str:
-        return "✅" if item_level >= item_level_requirement else "❌"
+        return " " if item_level >= item_level_requirement else "X"
 
     @discord.command(
         name="roster", description="Displays the roster of all registered characters"
@@ -32,8 +32,7 @@ class Raid(Cog):
 
             data = {
                 "Name": raider.name,
-                "Class": raider.class_name,
-                "Spec": raider.spec_name,
+                "Class/Spec": f"{raider.class_name}/{raider.spec_name}",
                 "Item Level": raider.item_level,
             }
 
@@ -43,7 +42,7 @@ class Raid(Cog):
             ):
                 data.update(
                     {
-                        "Meets Requirments?": self.get_requirement_emoji(
+                        "Requirements?": self.get_requirement_emoji(
                             raider.item_level, server.raider_item_level_requirement
                         )
                     }
@@ -59,7 +58,11 @@ class Raid(Cog):
             .set_params(row_sep="always", padding_width=5, padding_weight="centerright")
             .get_markdown()
         )
-        embed = discord.Embed(title="Raid Roster", color=discord.Color.dark_gold())
+        embed = discord.Embed(
+            title="Raid Roster",
+            color=discord.Color.dark_gold(),
+        )
+
         embed.add_field(name="Raiders", value=table)
 
         embed.set_footer(text="Data from Raider.io")
@@ -123,6 +126,8 @@ class Raid(Cog):
         name="itemlevel",
         description="Set the item level requirement for raid roster. Enter 0 to have no requirement",
     )
+    @commands.guild_only()
+    @commands.is_owner()
     async def set_item_level_requirement(self, ctx: Context, item_level: int):
         guild_id = ctx._get_guild_id()
 
@@ -136,8 +141,25 @@ class Raid(Cog):
             )
 
         return await ctx.respond(
-            f"Item level requirement has been set to `{item_level}`!"
+            f"Item level requirement has been set to `{item_level}`!", ephemeral=True
         )
+
+    @discord.command(
+        name="remove", description="Remove a character from the raid roster"
+    )
+    @commands.guild_only()
+    @commands.is_owner()
+    async def remove_character(self, ctx: Context, name: str, realm: str):
+        exists = await CharacterModel.exists(name=name, realm=realm)
+
+        # TODO will need to add the guild_id too to make sure we can't delete a character from another server
+
+        if not exists:
+            return await ctx.respond(f"Character does not exist")
+
+        db_char = await CharacterModel.get(name=name, realm=realm)
+        await CharacterModel.delete(db_char)
+        return await ctx.respond("Character has been deleted", ephemeral=True)
 
 
 def setup(bot):
