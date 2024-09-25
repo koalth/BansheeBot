@@ -25,6 +25,7 @@ class Raid(Cog):
         description="Region of the World of Warcraft character",
         choices=["us"],
     )
+    @is_raider()
     @commands.guild_only()
     async def register(self, ctx: Context, name: str, realm: str, region: str):
 
@@ -70,7 +71,7 @@ class Raid(Cog):
         description="Set the item level requirement for raid roster. Enter 0 to have no requirement",
     )
     @commands.guild_only()
-    @commands.is_owner()
+    @is_manager()
     async def set_item_level_requirement(self, ctx: Context, item_level: int):
         guild_id = ctx._get_guild_id()
 
@@ -91,7 +92,7 @@ class Raid(Cog):
         name="remove", description="Remove a character from the raid roster"
     )
     @commands.guild_only()
-    @commands.is_owner()
+    @is_manager()
     async def remove_character(self, ctx: Context, name: str, realm: str):
         exists = await CharacterModel.exists(name=name, realm=realm)
 
@@ -135,6 +136,7 @@ class Raid(Cog):
     @roster_group.command(
         name="details", description="Show the roster with more details"
     )
+    @is_manager()
     async def roster_detail(self, ctx: Context):
         return await ctx.respond(
             "Hello I am the roster with more details. You need to be a raider to use this"

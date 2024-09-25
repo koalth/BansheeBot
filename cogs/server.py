@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord import option
 
-from core import Cog, Context, ServerModel
+from core import Cog, Context, ServerModel, is_manager
 
 from loguru import logger
 
@@ -12,6 +12,7 @@ class Server(Cog):
 
     @discord.command(name="setmanager", description="Set the manager role for the bot")
     @option("role", discord.Role, description="Enter the manager role")
+    @is_manager()
     async def set_manager(self, ctx: Context, role: discord.Role):
         guild_id = ctx._get_guild_id()
 
@@ -23,6 +24,7 @@ class Server(Cog):
 
     @discord.command(name="setraider", description="Set the raider role for the bot")
     @option("role", discord.Role, description="Enter the raider role")
+    @is_manager()
     async def set_raider_role(self, ctx: Context, role: discord.Role):
         guild_id = ctx._get_guild_id()
 

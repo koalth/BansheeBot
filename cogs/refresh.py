@@ -1,7 +1,15 @@
 import discord
 from discord.ext import commands, tasks
 
-from core import Cog, Context, ServerModel, CharacterModel, RaiderIOClient, Character
+from core import (
+    Cog,
+    Context,
+    ServerModel,
+    CharacterModel,
+    RaiderIOClient,
+    Character,
+    is_manager,
+)
 
 from core.bot import BansheeBot
 import asyncio
@@ -25,8 +33,8 @@ class Refresh(Cog):
         name="refresh",
         description="Refresh the characters on the roster with the latest data from RaiderIO",
     )
-    @commands.is_owner()
     @commands.guild_only()
+    @is_manager()
     async def refresh(self, ctx: Context):
         if self.is_refreshing:
             return await ctx.respond("Roster is already refreshing")
@@ -41,8 +49,8 @@ class Refresh(Cog):
     @discord.command(
         name="status", description="Get the status of the current roster refresh"
     )
-    @commands.is_owner()
     @commands.guild_only()
+    @is_manager()
     async def status(self, ctx: Context):
         guild_id = ctx._get_guild_id()
         server = await ServerModel.get(discord_guild_id=guild_id)
@@ -56,6 +64,12 @@ class Refresh(Cog):
         logger.debug("Checking refresh status")
         try:
             for guild in self.bot.guilds:
+
+                exists = await ServerModel.exists(discord_guild_id=guild.id)
+                if not exists:
+                    logger.debug(f"Server {guild.id} does not exist in db. Skipping..")
+                    break
+
                 server = await ServerModel.get(discord_guild_id=guild.id)
                 if server.roster_updating and (
                     not self.refresh_task or self.refresh_task.done()

@@ -15,7 +15,7 @@ class RosterEmbed:
     def _get_requirement_emoji(
         self, item_level: int, item_level_requirement: int
     ) -> str:
-        return " " if item_level >= item_level_requirement else "X"
+        return "✅" if item_level >= item_level_requirement else "❌"
 
     def _defaults(self) -> discord.Embed:
         embed = discord.Embed(color=discord.Color.dark_gold())
@@ -57,6 +57,8 @@ class RosterEmbed:
     def raid_roster(self, item_level_requirement: int) -> discord.Embed:
         embed = self._defaults()
 
+        embed.title = "Raid Roster"
+
         embed = self._get_names_field(embed)
         embed = self._get_item_levels_field(embed)
         embed = self._get_meets_requirement_field(embed, item_level_requirement)
@@ -65,6 +67,8 @@ class RosterEmbed:
 
     def detailed_roster(self) -> discord.Embed:
         embed = self._defaults()
+
+        embed.title = "Detailed Roster"
 
         embed = self._get_names_field(embed)
         embed = self._get_class_spec_field(embed)
