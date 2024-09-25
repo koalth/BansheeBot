@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands, tasks
 
-from core import Cog, Context, ServerModel, CharacterModel
+from core import Cog, Context, ServerModel, CharacterModel, is_raider, is_manager
+from views import RosterEmbed
 
 from py_markdown_table.markdown_table import markdown_table
 
@@ -10,64 +11,6 @@ from loguru import logger
 
 class Raid(Cog):
     """Commands related to the raid roster"""
-
-    def get_requirement_emoji(
-        self, item_level: int, item_level_requirement: int
-    ) -> str:
-        return " " if item_level >= item_level_requirement else "X"
-
-    @discord.command(
-        name="roster", description="Displays the roster of all registered characters"
-    )
-    @commands.is_owner()
-    @commands.guild_only()
-    async def roster(self, ctx: Context):
-        guild_id = ctx._get_guild_id()
-        server = await ServerModel.get(discord_guild_id=guild_id).prefetch_related(
-            "raiders"
-        )
-
-        raider_data = []
-        for raider in server.raiders:
-
-            data = {
-                "Name": raider.name,
-                "Class/Spec": f"{raider.class_name}/{raider.spec_name}",
-                "Item Level": raider.item_level,
-            }
-
-            if (
-                server.raider_item_level_requirement is not None
-                and server.raider_item_level_requirement > 0
-            ):
-                data.update(
-                    {
-                        "Requirements?": self.get_requirement_emoji(
-                            raider.item_level, server.raider_item_level_requirement
-                        )
-                    }
-                )
-
-            raider_data.append(data)
-
-        if len(raider_data) == 0:
-            return await ctx.respond("There are no raiders to display.")
-
-        table = (
-            markdown_table(raider_data)
-            .set_params(row_sep="always", padding_width=5, padding_weight="centerright")
-            .get_markdown()
-        )
-        embed = discord.Embed(
-            title="Raid Roster",
-            color=discord.Color.dark_gold(),
-        )
-
-        embed.add_field(name="Raiders", value=table)
-
-        embed.set_footer(text="Data from Raider.io")
-
-        return await ctx.respond(embed=embed)
 
     @discord.command(
         name="register",
@@ -160,6 +103,42 @@ class Raid(Cog):
         db_char = await CharacterModel.get(name=name, realm=realm)
         await CharacterModel.delete(db_char)
         return await ctx.respond("Character has been deleted", ephemeral=True)
+
+    roster_group = discord.SlashCommandGroup(
+        name="roster", description="Commands related to roster"
+    )
+
+    @roster_group.command(name="raid", description="Display the raid roster")
+    @is_manager()
+    async def raid_roster(self, ctx: Context):
+        guild_id = ctx._get_guild_id()
+        server = await ServerModel.get(discord_guild_id=guild_id).prefetch_related(
+            "raiders"
+        )
+
+        if len(server.raiders) == 0:
+            return await ctx.respond("There are no raiders.", ephemeral=True)
+
+        roster_embed = RosterEmbed(server.raiders)  # type: ignore
+
+        if server.raider_item_level_requirement:
+            roster_embed = roster_embed.raid_roster(
+                server.raider_item_level_requirement
+            )
+        else:
+            return await ctx.respond(
+                "There is no set item level requirements", ephemeral=True
+            )
+
+        return await ctx.respond(embed=roster_embed)
+
+    @roster_group.command(
+        name="details", description="Show the roster with more details"
+    )
+    async def roster_detail(self, ctx: Context):
+        return await ctx.respond(
+            "Hello I am the roster with more details. You need to be a raider to use this"
+        )
 
 
 def setup(bot):

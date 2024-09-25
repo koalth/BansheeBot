@@ -9,6 +9,9 @@ class ServerModel(Model):
     raider_role_id = fields.IntField(null=True)
     raider_item_level_requirement = fields.IntField(null=True)
 
+    manager_role_id = fields.IntField(null=True)
+    raider_role_id = fields.IntField(null=True)
+
     # fields to track roster updates
     roster_updating = fields.BooleanField(default=False)
 
