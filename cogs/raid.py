@@ -1,7 +1,20 @@
 import discord
 from discord.ext import commands, tasks
 
-from core import Cog, Context, ServerModel, CharacterModel, is_raider, is_manager
+from core import (
+    Cog,
+    Context,
+    ServerModel,
+    CharacterModel,
+    is_raider,
+    is_manager,
+    create_character,
+    delete_character,
+    character_exists,
+    server_has_raiders,
+    get_raiders,
+    get_item_level_requirement,
+)
 from views import RosterEmbed
 
 from py_markdown_table.markdown_table import markdown_table
@@ -20,18 +33,12 @@ class Raid(Cog):
     @discord.option(
         name="realm", description="Realm of the World of Warcraft character"
     )
-    @discord.option(
-        name="region",
-        description="Region of the World of Warcraft character",
-        choices=["us"],
-    )
     @is_raider()
     @commands.guild_only()
-    async def register(self, ctx: Context, name: str, realm: str, region: str):
+    async def register(self, ctx: Context, name: str, realm: str, region: str = "us"):
 
         # check if character already exists
-        exists = await CharacterModel.exists(name=name, realm=realm)
-
+        exists = await character_exists(name, realm)
         if exists:
             logger.debug(f"Character already exists")
             return await ctx.respond(f"`{name}` has already been registered")
@@ -43,49 +50,11 @@ class Raid(Cog):
             logger.debug(f"Character profile was none")
             return await ctx.respond(f"Character was not found")
 
-        server = await ServerModel.get(discord_guild_id=guild_id)
+        await create_character(profile, guild_id, ctx.author.id)
 
-        character = CharacterModel(
-            discord_user_id=ctx.author.id,
-            name=profile.name,
-            realm=profile.realm,
-            region=profile.region,
-            item_level=profile.item_level,
-            class_name=profile.char_class,
-            spec_name=profile.spec_name,
-            profile_url=profile.profile_url,
-            thumbnail_url=profile.thumbnail_url,
-            raid_roster_id=server.id,
-            raiderio_last_crawled_at=profile.last_crawled_at,
-        )
-
-        await character.save()
-        logger.info(f"Character {character.name} saved")
         return await ctx.respond(
-            f"`{character.name}`-`{character.realm}` has been registered!",
+            f"`{profile.name}`-`{profile.realm}` has been registered!",
             ephemeral=True,
-        )
-
-    @discord.command(
-        name="itemlevel",
-        description="Set the item level requirement for raid roster. Enter 0 to have no requirement",
-    )
-    @commands.guild_only()
-    @is_manager()
-    async def set_item_level_requirement(self, ctx: Context, item_level: int):
-        guild_id = ctx._get_guild_id()
-
-        if item_level == 0:
-            await ServerModel.filter(discord_guild_id=guild_id).update(
-                raider_item_level_requirement=None
-            )
-        else:
-            await ServerModel.filter(discord_guild_id=guild_id).update(
-                raider_item_level_requirement=item_level
-            )
-
-        return await ctx.respond(
-            f"Item level requirement has been set to `{item_level}`!", ephemeral=True
         )
 
     @discord.command(
@@ -94,15 +63,11 @@ class Raid(Cog):
     @commands.guild_only()
     @is_manager()
     async def remove_character(self, ctx: Context, name: str, realm: str):
-        exists = await CharacterModel.exists(name=name, realm=realm)
 
-        # TODO will need to add the guild_id too to make sure we can't delete a character from another server
-
-        if not exists:
+        if not await character_exists(name, realm):
             return await ctx.respond(f"Character does not exist")
 
-        db_char = await CharacterModel.get(name=name, realm=realm)
-        await CharacterModel.delete(db_char)
+        await delete_character(name, realm, ctx._get_guild_id())
         return await ctx.respond("Character has been deleted", ephemeral=True)
 
     roster_group = discord.SlashCommandGroup(
@@ -113,19 +78,18 @@ class Raid(Cog):
     @is_manager()
     async def raid_roster(self, ctx: Context):
         guild_id = ctx._get_guild_id()
-        server = await ServerModel.get(discord_guild_id=guild_id).prefetch_related(
-            "raiders"
-        )
 
-        if len(server.raiders) == 0:
+        if not await server_has_raiders(guild_id):
             return await ctx.respond("There are no raiders.", ephemeral=True)
 
-        roster_embed = RosterEmbed(server.raiders)  # type: ignore
+        raiders = await get_raiders(guild_id)
 
-        if server.raider_item_level_requirement:
-            roster_embed = roster_embed.raid_roster(
-                server.raider_item_level_requirement
-            )
+        roster_embed = RosterEmbed(raiders)  # type: ignore
+
+        item_level_req = await get_item_level_requirement(guild_id)
+
+        if item_level_req:
+            roster_embed = roster_embed.raid_roster(item_level_req)
         else:
             return await ctx.respond(
                 "There is no set item level requirements", ephemeral=True

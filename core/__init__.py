@@ -5,7 +5,8 @@ from .context import Context
 from .models import ServerModel, CharacterModel
 from .api import RaiderIOClient
 from .dto import Character
-from .services import is_raider, is_manager
+from .checks import is_raider, is_manager
+from .services import *
 
 
 class Cog(commands.Cog):
