@@ -9,12 +9,14 @@ BansheeBot is a Discord bot that provides a set of commands for managing a World
 
 <details>
 <summary>👻 Raid</summary>
-    - `/roster`: Display the roster of registered raiders
-    - `/register`: Register your World of Warcraft character to be tracked on the roster
-    - `/itemlevel`: Set the item level requirement for the raid roster
-    - `/remove`: Remove a character from the raid roster
-    - `/refresh`: Start the process to refresh the characters on the raid roster
-    - `/status`: Check the status of the raid roster refresh
+    
+- `/roster`: Display the roster of registered raiders
+- `/register`: Register your World of Warcraft character to be tracked on the roster
+- `/itemlevel`: Set the item level requirement for the raid roster
+- `/remove`: Remove a character from the raid roster
+- `/refresh`: Start the process to refresh the characters on the raid roster
+- `/status`: Check the status of the raid roster refresh
+
 </details>
 
 ## Questions or Feedback
