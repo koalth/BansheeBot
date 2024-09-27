@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, TypeVar
 from typing_extensions import TypedDict
 from datetime import datetime
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from aiolimiter import AsyncLimiter
 import aiohttp
@@ -53,9 +53,13 @@ class ItemsResponse(TypedDict):
 
 class GearResponse(MyBaseModel):
     updated_at: str
-    item_level_equipped: int
-    item_level_total: int
+    item_level_equipped: float
+    # item_level_total: int
     items: ItemsResponse
+
+    @field_validator("item_level_equipped")
+    def convert_float(cls, v):
+        return round(float(v))
 
 
 class GuildResponse(MyBaseModel):

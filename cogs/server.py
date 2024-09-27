@@ -22,7 +22,7 @@ class Server(Cog):
 
     @discord.command(name="setmanager", description="Set the manager role for the bot")
     @option("role", discord.Role, description="Enter the manager role")
-    @is_manager()
+    @commands.is_owner()
     async def set_manager(self, ctx: Context, role: discord.Role):
         guild_id = ctx._get_guild_id()
 
@@ -31,7 +31,7 @@ class Server(Cog):
 
     @discord.command(name="setraider", description="Set the raider role for the bot")
     @option("role", discord.Role, description="Enter the raider role")
-    @is_manager()
+    @commands.is_owner()
     async def set_raider_role(self, ctx: Context, role: discord.Role):
         guild_id = ctx._get_guild_id()
 
@@ -44,7 +44,7 @@ class Server(Cog):
         description="Set the item level requirement for the raid. Put 0 to remove the requirement.",
     )
     @option("itemlevel", description="Item level requirement for the raid roster")
-    @is_manager()
+    @commands.is_owner()
     async def set_item_level_requirement(self, ctx: Context, itemlevel: int):
         guild_id = ctx._get_guild_id()
         await set_item_level_requirement(guild_id, itemlevel)

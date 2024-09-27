@@ -29,7 +29,7 @@ class CharacterModel(Model):
     realm = fields.TextField()
     region = fields.TextField()
 
-    item_level = fields.IntField()
+    item_level = fields.FloatField()
     class_name = fields.TextField()
     spec_name = fields.TextField()
     profile_url = fields.TextField()
