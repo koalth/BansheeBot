@@ -77,6 +77,10 @@ async def get_raiders(guild_id: int):
     return server.raiders
 
 
+async def get_manager_role_id():
+    pass
+
+
 # Character
 async def character_exists(name: str, realm: str) -> bool:
     return await CharacterModel.exists(name=name, realm=realm)

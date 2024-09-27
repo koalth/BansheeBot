@@ -50,3 +50,10 @@ def is_manager():
         return True
 
     return commands.check(predicate)  # type: ignore
+
+
+def is_raider_or_manager_or_owner():
+    async def predicate(ctx: Context):
+        pass
+
+    return commands.check(predicate)  # type: ignore
