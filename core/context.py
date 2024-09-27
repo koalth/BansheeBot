@@ -46,6 +46,9 @@ class Context(ApplicationContext):
         guild = self._get_guild()
         return guild.id
 
+    def _has_role(self, role_id: int) -> bool:
+        return self.author.get_role(role_id) is not None  # type: ignore
+
     async def success(self, title: str, description: str | None = None, **kwargs):
         embed = Embed(
             title=title,

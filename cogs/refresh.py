@@ -34,7 +34,7 @@ class Refresh(Cog):
         description="Refresh the characters on the roster with the latest data from RaiderIO",
     )
     @commands.guild_only()
-    @is_manager()
+    @commands.check_any(commands.is_owner(), is_manager())  # type: ignore
     async def refresh(self, ctx: Context):
         if self.is_refreshing:
             return await ctx.respond("Roster is already refreshing")
@@ -50,7 +50,7 @@ class Refresh(Cog):
         name="status", description="Get the status of the current roster refresh"
     )
     @commands.guild_only()
-    @is_manager()
+    @commands.check_any(commands.is_owner(), is_manager())  # type: ignore
     async def status(self, ctx: Context):
         guild_id = ctx._get_guild_id()
         server = await ServerModel.get(discord_guild_id=guild_id)

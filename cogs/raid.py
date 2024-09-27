@@ -33,8 +33,8 @@ class Raid(Cog):
     @discord.option(
         name="realm", description="Realm of the World of Warcraft character"
     )
-    @is_raider()
     @commands.guild_only()
+    @commands.check_any(commands.is_owner(), is_manager(), is_raider())  # type: ignore
     async def register(self, ctx: Context, name: str, realm: str, region: str = "us"):
 
         # check if character already exists
@@ -61,7 +61,7 @@ class Raid(Cog):
         name="remove", description="Remove a character from the raid roster"
     )
     @commands.guild_only()
-    @is_manager()
+    @commands.check_any(commands.is_owner(), is_manager())  # type: ignore
     async def remove_character(self, ctx: Context, name: str, realm: str):
 
         if not await character_exists(name, realm):
@@ -75,7 +75,7 @@ class Raid(Cog):
     )
 
     @roster_group.command(name="raid", description="Display the raid roster")
-    @is_manager()
+    @commands.check_any(commands.is_owner(), is_manager())  # type: ignore
     async def raid_roster(self, ctx: Context):
         guild_id = ctx._get_guild_id()
 
@@ -100,7 +100,7 @@ class Raid(Cog):
     @roster_group.command(
         name="details", description="Show the roster with more details"
     )
-    @is_manager()
+    @commands.check_any(commands.is_owner(), is_manager())  # type: ignore
     async def roster_detail(self, ctx: Context):
         return await ctx.respond(
             "Hello I am the roster with more details. You need to be a raider to use this"

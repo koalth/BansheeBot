@@ -2,6 +2,7 @@ from discord.ext import commands
 
 from .models import ServerModel
 from .context import Context
+from .services import get_manager_role_id, get_raider_role_id
 
 
 class RoleNotSetError(commands.CheckFailure):
@@ -15,14 +16,12 @@ class NotRaiderError(commands.CheckFailure):
 def is_raider():
     async def predicate(ctx: Context):
         guild_id = ctx._get_guild_id()
-        server = await ServerModel.get(discord_guild_id=guild_id)
+        server_raider_role_id = await get_raider_role_id(guild_id)
 
-        if server.raider_role_id is None:
+        if server_raider_role_id is None:
             raise RoleNotSetError()
 
-        has_raider_role = ctx.author.get_role(server.raider_role_id) is not None  # type: ignore
-
-        if not has_raider_role:
+        if not ctx._has_role(server_raider_role_id):
             raise NotRaiderError("You do not have the raider role")
 
         return True
@@ -37,23 +36,14 @@ class NotManagerError(commands.CheckFailure):
 def is_manager():
     async def predicate(ctx: Context):
         guild_id = ctx._get_guild_id()
-        server = await ServerModel.get(discord_guild_id=guild_id)
+        server_manager_role_id = await get_manager_role_id(guild_id)
 
-        if server.raider_role_id is None:
+        if server_manager_role_id is None:
             raise RoleNotSetError()
 
-        has_manager_role = ctx.author.get_role(server.manager_role_id) is not None  # type: ignore
-
-        if not has_manager_role:
+        if not ctx._has_role(server_manager_role_id):
             raise NotManagerError("You do not have the manager role")
 
         return True
-
-    return commands.check(predicate)  # type: ignore
-
-
-def is_raider_or_manager_or_owner():
-    async def predicate(ctx: Context):
-        pass
 
     return commands.check(predicate)  # type: ignore

@@ -77,8 +77,14 @@ async def get_raiders(guild_id: int):
     return server.raiders
 
 
-async def get_manager_role_id():
-    pass
+async def get_manager_role_id(guild_id: int) -> Optional[int]:
+    server = await get_server(guild_id)
+    return server.manager_role_id if server.manager_role_id is not None else None
+
+
+async def get_raider_role_id(guild_id: int) -> Optional[int]:
+    server = await get_server(guild_id)
+    return server.raider_role_id if server.raider_role_id is not None else None
 
 
 # Character
