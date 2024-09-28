@@ -70,11 +70,11 @@ class Raid(Cog):
         await delete_character(name, realm, ctx._get_guild_id())
         return await ctx.respond("Character has been deleted", ephemeral=True)
 
-    roster_group = discord.SlashCommandGroup(
-        name="roster", description="Commands related to roster"
-    )
+    # roster_group = discord.SlashCommandGroup(
+    #     name="roster", description="Commands related to roster"
+    # )
 
-    @roster_group.command(name="raid", description="Display the raid roster")
+    @discord.command(name="roster", description="Display the raid roster")
     @commands.check_any(commands.is_owner(), is_manager())  # type: ignore
     async def raid_roster(self, ctx: Context):
         guild_id = ctx._get_guild_id()
@@ -88,23 +88,18 @@ class Raid(Cog):
 
         item_level_req = await get_item_level_requirement(guild_id)
 
-        if item_level_req:
-            roster_embed = roster_embed.raid_roster(item_level_req)
-        else:
-            return await ctx.respond(
-                "There is no set item level requirements", ephemeral=True
-            )
+        roster_embed = roster_embed.raid_roster(item_level_req)
 
         return await ctx.respond(embed=roster_embed)
 
-    @roster_group.command(
-        name="details", description="Show the roster with more details"
-    )
-    @commands.check_any(commands.is_owner(), is_manager())  # type: ignore
-    async def roster_detail(self, ctx: Context):
-        return await ctx.respond(
-            "Hello I am the roster with more details. You need to be a raider to use this"
-        )
+    # @roster_group.command(
+    #     name="details", description="Show the roster with more details"
+    # )
+    # @commands.check_any(commands.is_owner(), is_manager())  # type: ignore
+    # async def roster_detail(self, ctx: Context):
+    #     return await ctx.respond(
+    #         "Hello I am the roster with more details. You need to be a raider to use this"
+    #     )
 
 
 def setup(bot):

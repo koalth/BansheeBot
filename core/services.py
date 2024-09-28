@@ -49,8 +49,8 @@ async def get_server_with_raiders(guild_id: int) -> ServerModel:
     return await ServerModel.get(discord_guild_id=guild_id).prefetch_related("raiders")
 
 
-async def set_item_level_requirement(guild_id: int, item_level_requirement: int):
-    logger.info(f"Setting item level requirement to {item_level_requirement}")
+async def set_item_level_requirement(guild_id: int, item_level_requirement: Optional[int]):
+    logger.info(f"Setting item level requirement to { "None" if item_level_requirement is None else item_level_requirement}")
     await ServerModel.filter(discord_guild_id=guild_id).update(
         raider_item_level_requirement=item_level_requirement
     )
