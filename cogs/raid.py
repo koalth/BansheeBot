@@ -41,7 +41,10 @@ class Raid(Cog):
         exists = await character_exists(name, realm)
         if exists:
             logger.debug(f"Character already exists")
-            return await ctx.respond(f"`{name}` has already been registered")
+            return await ctx.respond(
+                f"`{name}` has already been registered",
+                ephemeral=True,
+            )
 
         guild_id = ctx._get_guild_id()
         profile = await ctx.getCharacter(name, realm, region)
@@ -65,7 +68,10 @@ class Raid(Cog):
     async def remove_character(self, ctx: Context, name: str, realm: str):
 
         if not await character_exists(name, realm):
-            return await ctx.respond(f"Character does not exist")
+            return await ctx.respond(
+                f"Character does not exist",
+                ephemeral=True,
+            )
 
         await delete_character(name, realm, ctx._get_guild_id())
         return await ctx.respond("Character has been deleted", ephemeral=True)

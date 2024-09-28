@@ -37,7 +37,10 @@ class Refresh(Cog):
     @commands.check_any(commands.is_owner(), is_manager())  # type: ignore
     async def refresh(self, ctx: Context):
         if self.is_refreshing:
-            return await ctx.respond("Roster is already refreshing")
+            return await ctx.respond(
+                "Roster is already refreshing",
+                ephemeral=True,
+            )
 
         guild_id = ctx._get_guild_id()
         await ServerModel.filter(discord_guild_id=guild_id).update(roster_updating=True)
